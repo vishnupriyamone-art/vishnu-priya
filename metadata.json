@@ -1,0 +1,7 @@
+{
+  "name": "Health Monetisation",
+  "description": "A comprehensive health and wellness platform that provides personalized diet plans, step tracking analysis, and real-time AI health coaching using Gemini Live and Search Grounding.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
