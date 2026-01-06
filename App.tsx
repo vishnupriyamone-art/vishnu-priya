@@ -24,7 +24,8 @@ const App: React.FC = () => {
     height: 178,
     gender: 'Male',
     activityLevel: 'Moderate',
-    specialization: 'Muscle Gain'
+    specialization: 'Muscle Gain',
+    stepGoal: 10000
   });
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'diet' | 'voice' | 'search'>('dashboard');
@@ -156,6 +157,16 @@ const App: React.FC = () => {
                   <option>High Performance Athlete</option>
                   <option>Stress Reduction</option>
                 </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Daily Step Goal</label>
+                <input 
+                  type="number" 
+                  value={profile.stepGoal} 
+                  onChange={(e) => setProfile({...profile, stepGoal: parseInt(e.target.value) || 0})}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. 10000"
+                />
               </div>
               <button 
                 onClick={() => setIsProfileModalOpen(false)}

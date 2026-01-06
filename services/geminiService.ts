@@ -11,12 +11,12 @@ export class GeminiService {
   }
 
   // Uses gemini-flash-lite-latest for fast health tips
-  // Fixed Promise[string] to Promise<string>
   async getQuickTip(profile: UserProfile): Promise<string> {
     const response = await this.genAI.models.generateContent({
       model: 'gemini-flash-lite-latest',
       contents: `Based on a ${profile.age}-year-old ${profile.gender} with a ${profile.specialization} profile and ${profile.activityLevel} activity, give one short, actionable health tip (max 30 words).`,
     });
+    // Use .text property directly (not a method)
     return response.text || "Stay hydrated and keep moving!";
   }
 
@@ -31,6 +31,7 @@ export class GeminiService {
       
       Keep the feedback concise, encouraging, and science-backed. Focus on how this aligns with their ${profile.specialization} goal.`,
     });
+    // Use .text property directly
     return response.text || "Keep up the good work!";
   }
 
@@ -44,7 +45,8 @@ export class GeminiService {
       },
     });
     return {
-      text: response.text,
+      // Ensure text is always a string for the component state
+      text: response.text || "",
       sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [],
     };
   }
@@ -73,6 +75,7 @@ export class GeminiService {
         }
       }
     });
+    // Use .text property directly
     return JSON.parse(response.text || "[]");
   }
 
@@ -85,6 +88,7 @@ export class GeminiService {
       },
     });
     const result = await chat.sendMessage({ message });
-    return result.text;
+    // Use .text property directly
+    return result.text || "";
   }
 }

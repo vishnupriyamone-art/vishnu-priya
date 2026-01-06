@@ -11,6 +11,8 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ metrics, quickTip, profile }) => {
+  const formattedStepGoal = profile.stepGoal >= 1000 ? `${profile.stepGoal / 1000}k` : profile.stepGoal;
+
   return (
     <div className="space-y-8">
       {/* Enhanced Header with Image and Tip */}
@@ -56,7 +58,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, quickTip, profile }) => 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 group hover:border-emerald-200 transition-colors">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-slate-500 font-medium group-hover:text-emerald-600 transition-colors">Daily Steps</h3>
-            <span className="text-emerald-500 text-xs font-bold px-2 py-1 bg-emerald-50 rounded-full">Goal: 10k</span>
+            <span className="text-emerald-500 text-xs font-bold px-2 py-1 bg-emerald-50 rounded-full">Goal: {formattedStepGoal}</span>
           </div>
           <div className="flex items-baseline gap-2">
             <p className="text-3xl font-bold text-slate-800">{metrics[metrics.length - 1]?.steps.toLocaleString()}</p>

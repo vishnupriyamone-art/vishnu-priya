@@ -22,11 +22,12 @@ export interface UserProfile {
   gender: string;
   activityLevel: string;
   specialization: string; // e.g., Diabetic, Keto, Athlete
+  stepGoal: number;
 }
 
 export interface GroundingSource {
   web?: {
-    uri: string;
-    title: string;
+    uri?: string;
+    title?: string;
   };
 }

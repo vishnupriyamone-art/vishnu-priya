@@ -14,6 +14,7 @@ const HealthSearch: React.FC = () => {
     if (!query.trim()) return;
     setLoading(true);
     try {
+      // Fix: searchHealthTopic now returns matching GroundingSource types
       const data = await gemini.searchHealthTopic(query);
       setResult(data);
     } catch (error) {
@@ -57,7 +58,7 @@ const HealthSearch: React.FC = () => {
             <div className="mt-8 pt-6 border-t border-slate-100">
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Verified Sources</h4>
               <div className="flex flex-wrap gap-3">
-                {result.sources.map((src, i) => src.web && (
+                {result.sources.map((src, i) => src.web?.uri && src.web?.title && (
                   <a
                     key={i}
                     href={src.web.uri}
