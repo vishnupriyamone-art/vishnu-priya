@@ -15,6 +15,15 @@ export interface HealthMetric {
   waterIntake: number;
 }
 
+export interface DailyLogEntry {
+  id: string;
+  timestamp: number;
+  food: string;
+  water: number;
+  exercise: string;
+  aiFeedback: string;
+}
+
 export interface UserProfile {
   age: number;
   weight: number;

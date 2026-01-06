@@ -2,8 +2,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { decode, encode, decodeAudioData } from '../utils/audioUtils';
+import { UserProfile, DailyLogEntry } from '../types';
 
-const VoiceAssistant: React.FC = () => {
+interface VoiceAssistantProps {
+  profile: UserProfile;
+  logs: DailyLogEntry[];
+}
+
+const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ profile, logs }) => {
   const [isActive, setIsActive] = useState(false);
   const [status, setStatus] = useState('Ready to chat');
   const sessionRef = useRef<any>(null);
@@ -22,7 +28,6 @@ const VoiceAssistant: React.FC = () => {
   const startSession = async () => {
     try {
       setStatus('Connecting...');
-      // Use process.env.API_KEY directly when initializing GoogleGenAI
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -31,6 +36,10 @@ const VoiceAssistant: React.FC = () => {
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
+      const recentContext = logs.slice(-3).map(l => 
+        `User ate ${l.food}, drank ${l.water}L water, and did ${l.exercise}.`
+      ).join(' ');
+
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         callbacks: {
@@ -50,7 +59,6 @@ const VoiceAssistant: React.FC = () => {
                 data: encode(new Uint8Array(int16.buffer)),
                 mimeType: 'audio/pcm;rate=16000',
               };
-              // CRITICAL: Solely rely on sessionPromise resolves and then call session.sendRealtimeInput
               sessionPromise.then((session) => {
                 session.sendRealtimeInput({ media: pcmBlob });
               });
@@ -94,7 +102,11 @@ const VoiceAssistant: React.FC = () => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
           },
-          systemInstruction: 'You are an energetic health coach. Talk to the user about their diet, steps, and motivation. Be brief and encouraging.',
+          systemInstruction: `You are an energetic and empathetic health coach for Health Monetisation. 
+            The user is ${profile.age} years old and identifies as ${profile.gender}. 
+            Their main health focus is ${profile.specialization}. 
+            Recent activity history: ${recentContext || 'No logs yet'}.
+            Talk to them naturally about their day, provide motivation, and answer health questions briefly. Be encouraging!`,
         }
       });
       sessionRef.current = await sessionPromise;
@@ -116,11 +128,11 @@ const VoiceAssistant: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden">
+    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden h-full flex flex-col items-center justify-center">
       <div className="relative z-10 flex flex-col items-center">
-        <h2 className="text-2xl font-bold mb-2">Live Health Coaching</h2>
+        <h2 className="text-2xl font-bold mb-2">Voice Coach Live</h2>
         <p className="text-indigo-100 text-sm mb-8 text-center max-w-sm">
-          Speak naturally about your goals, cravings, or soreness. Gemini is here to coach you in real-time.
+          Speak with your personal AI assistant. Gemini knows your profile and recent logs.
         </p>
 
         <button
@@ -131,9 +143,9 @@ const VoiceAssistant: React.FC = () => {
         >
           {isActive ? (
             <div className="flex gap-1 items-center">
-              <div className="w-1 h-6 bg-white animate-bounce"></div>
-              <div className="w-1 h-10 bg-white animate-bounce [animation-delay:-0.2s]"></div>
-              <div className="w-1 h-6 bg-white animate-bounce [animation-delay:-0.4s]"></div>
+              <div className="w-1.5 h-6 bg-white animate-bounce"></div>
+              <div className="w-1.5 h-10 bg-white animate-bounce [animation-delay:-0.2s]"></div>
+              <div className="w-1.5 h-6 bg-white animate-bounce [animation-delay:-0.4s]"></div>
             </div>
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,7 +157,6 @@ const VoiceAssistant: React.FC = () => {
         <p className="mt-6 font-medium text-indigo-100">{status}</p>
       </div>
 
-      {/* Decorative blobs */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400 opacity-10 rounded-full -ml-10 -mb-10"></div>
     </div>

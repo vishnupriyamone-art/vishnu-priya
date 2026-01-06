@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, HealthMetric } from './types';
+import { UserProfile, HealthMetric, DailyLogEntry } from './types';
 import { GeminiService } from './services/geminiService';
 import Dashboard from './components/Dashboard';
 import DietPlanner from './components/DietPlanner';
 import VoiceAssistant from './components/VoiceAssistant';
 import HealthSearch from './components/HealthSearch';
+import HealthCoach from './components/HealthCoach';
 
 const INITIAL_METRICS: HealthMetric[] = [
   { date: 'Mon', steps: 8400, caloriesBurned: 2100, waterIntake: 2.1 },
@@ -28,9 +29,10 @@ const App: React.FC = () => {
     stepGoal: 10000
   });
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'diet' | 'voice' | 'search'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'coach' | 'diet' | 'voice' | 'search'>('dashboard');
   const [quickTip, setQuickTip] = useState('Drink water as soon as you wake up.');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [logs, setLogs] = useState<DailyLogEntry[]>([]);
   
   const gemini = new GeminiService();
 
@@ -47,10 +49,14 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.specialization, profile.age]);
 
+  const handleLogSaved = (newEntry: DailyLogEntry) => {
+    setLogs(prev => [...prev, newEntry]);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar */}
-      <nav className="w-full md:w-64 bg-white border-r border-slate-100 p-6 flex flex-col gap-8 sticky top-0 h-auto md:h-screen">
+      <nav className="w-full md:w-64 bg-white border-r border-slate-100 p-6 flex flex-col gap-8 sticky top-0 h-auto md:h-screen z-40 shadow-sm md:shadow-none">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-100">HM</div>
           <span className="font-bold text-xl tracking-tight text-slate-800">Health Monet</span>
@@ -63,6 +69,13 @@ const App: React.FC = () => {
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
             Dashboard
+          </button>
+          <button 
+            onClick={() => setActiveTab('coach')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'coach' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            AI Coach
           </button>
           <button 
             onClick={() => setActiveTab('diet')}
@@ -102,21 +115,22 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
-          {activeTab === 'dashboard' && <Dashboard metrics={INITIAL_METRICS} quickTip={quickTip} profile={profile} />}
+        <div className="max-w-6xl mx-auto h-full">
+          {activeTab === 'dashboard' && <Dashboard metrics={INITIAL_METRICS} quickTip={quickTip} profile={profile} logs={logs} onLogSaved={handleLogSaved} />}
+          {activeTab === 'coach' && <HealthCoach profile={profile} logs={logs} />}
           {activeTab === 'diet' && <DietPlanner profile={profile} />}
-          {activeTab === 'voice' && <VoiceAssistant />}
+          {activeTab === 'voice' && <VoiceAssistant profile={profile} logs={logs} />}
           {activeTab === 'search' && <HealthSearch />}
         </div>
       </main>
 
-      {/* Profile Modal (Simplified) */}
+      {/* Profile Modal */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-fade-in">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800">Health Profile</h2>
-              <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
@@ -128,7 +142,7 @@ const App: React.FC = () => {
                     type="number" 
                     value={profile.age} 
                     onChange={(e) => setProfile({...profile, age: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -136,7 +150,7 @@ const App: React.FC = () => {
                   <select 
                     value={profile.gender}
                     onChange={(e) => setProfile({...profile, gender: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option>Male</option>
                     <option>Female</option>
@@ -149,7 +163,7 @@ const App: React.FC = () => {
                 <select 
                   value={profile.specialization}
                   onChange={(e) => setProfile({...profile, specialization: e.target.value})}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option>Muscle Gain</option>
                   <option>Weight Loss</option>
@@ -164,13 +178,13 @@ const App: React.FC = () => {
                   type="number" 
                   value={profile.stepGoal} 
                   onChange={(e) => setProfile({...profile, stepGoal: parseInt(e.target.value) || 0})}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="e.g. 10000"
                 />
               </div>
               <button 
                 onClick={() => setIsProfileModalOpen(false)}
-                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold mt-4 hover:bg-indigo-700 transition-colors"
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold mt-4 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
               >
                 Save & Update Plans
               </button>
